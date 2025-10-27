@@ -8,46 +8,15 @@
   <script src="https://unpkg.com/jspsych@7.3.4"></script>
   <script src="https://unpkg.com/@jspsych/plugin-preload@1.1.3"></script>
   <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@1.1.3"></script>
-<style>
-  body { background: #fff; color: #111; font-family: system-ui, -apple-system, "Hiragino Kaku Gothic ProN", Meiryo, sans-serif; }
-
-  .word {
-    font-size: 52px;
-    line-height: 1.4;
-  }
-
-  .row {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 200px;
-    width: 100%;
-    margin-top: 80px;
-  }
-
-  img {
-    width: 400px;
-    height: 400px;
-    object-fit: contain;
-  }
-
-  /* ここから画面が小さい時だけ自動調整 */
-  @media (max-width: 1200px) {
-    .row {
-      gap: 50px;
-    }
-    img {
-      width: 30vw;
-      height: auto;
-      max-width: 400px;
-    }
-  }
-
-  .error-feedback { text-align: center; margin-top: 120px; }
-  .error-x { color: #ff0000; font-size: 120px; margin-bottom: 30px; }
-  .error-text { font-size: 28px; color: #000; }
-</style>
-
+  <style>
+    body { background: #fff; color: #111; font-family: system-ui, -apple-system, "Hiragino Kaku Gothic ProN", Meiryo, sans-serif; }
+    .row { display: flex; justify-content: center; align-items: center; gap: 200px; width: 100%; margin-top: 80px; }
+    .word { font-size: 52px; line-height: 1.4; }
+    img { width: 400px; height: 400px; object-fit: contain; }
+    .error-feedback { text-align: center; margin-top: 120px; }
+    .error-x { color: #ff0000; font-size: 120px; line-height: 1; margin-bottom: 30px; }
+    .error-text { font-size: 28px; color: #000; }
+  </style>
 </head>
 <body></body>
 
@@ -55,6 +24,14 @@
 // ========== 初期設定 ==========
 const jsPsych = initJsPsych({
   override_safe_mode: true,
+  on_finish: () => {
+    const csv = jsPsych.data.get().csv();
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'gng_full_experiment.csv'; a.click();
+    URL.revokeObjectURL(url);
+  }
 });
 
 function shuffleArray(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
@@ -64,30 +41,30 @@ const wordHTML=t=>`<div class="word">${t}</div>`, imgHTML=s=>`<img src="${s}">`,
 
 // ========== 画像定義（Dropbox直リンク版） ==========
 const POS_FILES = [
-  'https://dl.dropboxusercontent.com/scl/fi/qh31k5c21799ao97fn8lf/p1.jpg?rlkey=a1eggmhufc8uom23qgk0q3qpp&st=antju08u&dl',
-  'https://dl.dropboxusercontent.com/scl/fi/4xj2a578wwvadr57dyz6m/p2.jpg?rlkey=2e6s7428mhaidxfqvhnhdfwsc&st=21u6ro2w&dl',
-  'https://dl.dropboxusercontent.com/scl/fi/2piqwofsqvlvi9w9papht/p3.jpg?rlkey=51nyn0plq702i4qn5easho13t&st=bx1spxjw&dl',
-  'https://dl.dropboxusercontent.com/scl/fi/k79073vspm7p0p4snjdz0/p4.jpg?rlkey=x1naj4faoaot6hqu3ts2m8kr4&st=k8560gkh&dl',
-  'https://dl.dropboxusercontent.com/scl/fi/phoc64z29nzjr53jyih3h/p5.jpg?rlkey=85r3lbwwbughlrj7s92nhu3iz&st=ee28vc7w&dl',
-  'https://dl.dropboxusercontent.com/scl/fi/bipgfxfe573cjf8esjgm3/p6.jpg?rlkey=9i8za1ugk0sq1lbv1huompnwx&st=hdqb9smq&dl',
-  'https://dl.dropboxusercontent.com/scl/fi/fh8g4vqxgcf89icvfiicw/p7.jpg?rlkey=jee0ay363mr50cjtofhu8wqna&st=ngfkr27m&dl',
-  'https://dl.dropboxusercontent.com/scl/fi/9wnjf581c8ie4bkanr6x6/p8.jpg?rlkey=1ujz92pvqeszstzzoh8kolje5&st=kr78y39p&dl',
-  'https://dl.dropboxusercontent.com/scl/fi/l8ndffd819hh5y2jdv0y8/p9.jpg?rlkey=vwmy5d2b3zts60vfr454jnz9p&st=yrf9cfvj&dl',
-  'https://dl.dropboxusercontent.com/scl/fi/xnjdyom5buwt0xuoeb26a/p10.jpg?rlkey=j9vav46fojq2za77vl08zpr31&st=vmesmgpr&dl',
-  'https://dl.dropboxusercontent.com/scl/fi/t2vbglmywa0fc7u70qle7/p11.jpg?rlkey=ry8t82efk01sqfrssrl6ombww&st=a14k05wf&dl',
-  'https://dl.dropboxusercontent.com/scl/fi/pws4vat3okwy5oke8138i/p12.jpg?rlkey=749m81i6tmritvvcfmp75awbi&st=kh9sl914&dl',
-  'https://dl.dropboxusercontent.com/scl/fi/a3688p5s5z4cavco0m4mh/p13.jpg?rlkey=qkz6mm4pmbvrsrorwi181yq1q&st=ipnu0368&dl',
-  'https://dl.dropboxusercontent.com/scl/fi/bhkk9hq5q03td9y4pbd1u/p14.jpg?rlkey=pnlltqg2ufqceulw9pk16ml3n&st=l20qpcjr&dl',
-  'https://dl.dropboxusercontent.com/scl/fi/8fuu48mbjk1axsyhggnji/p15.jpg?rlkey=a8jqhiz7sdaw661ngtb5gtpc1&st=k5r4muiu&dl',
-  'https://dl.dropboxusercontent.com/scl/fi/p033ij9v0l6deh1k1viwy/p16.jpg?rlkey=kfxsujchj3kem8dd24mnczdyd&st=uuxz026o&dl',
-  'https://dl.dropboxusercontent.com/scl/fi/3r8rr28mtk5aqkcw0ocb0/p17.jpg?rlkey=whsucnahmdlae4b9xc7m6uxjn&st=sxoiyd40&dl',
-  'https://dl.dropboxusercontent.com/scl/fi/qu7cdrcr41kqae29qy8p4/p18.jpg?rlkey=17923c3u1qy1h3c7lda28xam7&st=wtmicany&dl',
-  'https://dl.dropboxusercontent.com/scl/fi/vqdu1k4ls70mv2i3hyta3/p19.jpg?rlkey=5km57k490ohqqjjc5jmw4qoeb&st=2wxaornf&dl',
-  'https://dl.dropboxusercontent.com/scl/fi/ktw2x5wkkth9es007sslb/p20.jpg?rlkey=zsergwyt17eki9nwt1wdmj6z3&st=d6swytmt&dl',
-  'https://dl.dropboxusercontent.com/scl/fi/qe6tmehpobey6rjsn6trg/p21.jpg?rlkey=txi28ou2ny8xrkugiattp5915&st=0ml6ngar&dl',
-  'https://dl.dropboxusercontent.com/scl/fi/rcsmfps5mge6htt3ervpy/p22.jpg?rlkey=h6cyxz48yntyz3k2c3e6s3u6m&st=c6te2ha6&dl',
-  'https://dl.dropboxusercontent.com/scl/fi/d35e9jebjyifd3ley4ua1/p23.jpg?rlkey=qk32uqgt5ubf7b0hzmnixor8e&st=xc1cpuww&dl',
-  'https://dl.dropboxusercontent.com/scl/fi/jm11ps7f76njxqu8b2pu0/p24.jpg?rlkey=47pl0l3wdpxwau3fvghpg1hi7&st=3wzs770d&dl'
+  'https://dl.dropboxusercontent.com/scl/fi/1dga6wxzm1icas65vm17s/P050.jpg?rlkey=9llsdwbfy9y5oh216fj5xhvub&st=efzcyuan',
+  'https://dl.dropboxusercontent.com/scl/fi/m3l0206zp4lbetht4jmat/P053.jpg?rlkey=05wo5eskn33w1eq3xfo9ctoe8&st=9s4tw62o',
+  'https://dl.dropboxusercontent.com/scl/fi/gfv5q8dxrx30v4zj3cbza/P058.jpg?rlkey=gs4bzzo8w9rt4qb9sub7mcbd8&st=62bun8bk',
+  'https://dl.dropboxusercontent.com/scl/fi/nlzuma7jqhrfihx6umdep/P065.jpg?rlkey=yykb1eqoqyl1yg3vz0fdt8o7m&st=wbdjbz1e',
+  'https://dl.dropboxusercontent.com/scl/fi/p3iv0myi8dgau6qlktlld/P070.jpg?rlkey=5l3ga63c7ekt2il674x8bwpmw&st=wupmqcak',
+  'https://dl.dropboxusercontent.com/scl/fi/p1pqktwjy6ffs8ax30u9w/P073.jpg?rlkey=0nqwk7g0ff5hw1yhzxrn5819o&st=0v1mv0k3',
+  'https://dl.dropboxusercontent.com/scl/fi/jelhclb8vx0dm8qfgiwk9/P074.jpg?rlkey=6bcbmr9wosx024rnhi0hagj3u&st=py2tbu77',
+  'https://dl.dropboxusercontent.com/scl/fi/zwootzlf438nxqp530zsw/P077.jpg?rlkey=mz8fb14rlciy15ijyfeu7jk2v&st=i8o8du5i',
+  'https://dl.dropboxusercontent.com/scl/fi/pjavhmcdydlz8d6upfylw/P078.jpg?rlkey=y02mtmlal2vx8z036wolimvxe&st=1ewpc8pp',
+  'https://dl.dropboxusercontent.com/scl/fi/281hninq2gxedxy0xvfw7/P081.jpg?rlkey=g6q09yrvmdgxahndhi84tlgip&st=ayjiitf3',
+  'https://dl.dropboxusercontent.com/scl/fi/6s9ighioxesns0wluohfi/P087.jpg?rlkey=8dr7d21au97v0ayszqkuw1jml&st=e34cd9zm',
+  'https://dl.dropboxusercontent.com/scl/fi/ivcy4wak5hjt3hzyxh0op/P088.jpg?rlkey=xqgyimhe93xz69zftmaqehys7&st=cb8karyc',
+  'https://dl.dropboxusercontent.com/scl/fi/qqjy02ddymnqfr45ohwbr/P094.jpg?rlkey=xvbj1cn57u26y6t9neehkm45p&st=1ulc2rdj',
+  'https://dl.dropboxusercontent.com/scl/fi/3pwepie80txdpuw4cjjhk/P096.jpg?rlkey=mq2fzv0rrvf6ltufchg8whmw3&st=kmvhk7p8',
+  'https://dl.dropboxusercontent.com/scl/fi/lintbkjehu2kwj09t8w4z/P100.jpg?rlkey=n9r7s586wqcenmxg39ak2wvh9&st=tflqg7iv',
+  'https://dl.dropboxusercontent.com/scl/fi/tz5b9xg2l706ysasfqv4y/P102.jpg?rlkey=ucy5ybg7kxttw13x43865v880&st=ejyf03y9',
+  'https://dl.dropboxusercontent.com/scl/fi/f2ho1y809nqluu0q3vmcc/P105.jpg?rlkey=bokhorchayphpbob4ycoicnnz&st=jf87j3ic',
+  'https://dl.dropboxusercontent.com/scl/fi/vj8i6k4q2v98m5ajg3yth/P106.jpg?rlkey=l1pyiwuppyfbce83fegkisjab&st=lw8vxa0w',
+  'https://dl.dropboxusercontent.com/scl/fi/0p7ixg13ehq6yy1ur6tn9/P107.jpg?rlkey=4n7yvuzlflrd5yradp1v71m9t&st=bblk7q56',
+  'https://dl.dropboxusercontent.com/scl/fi/6aez69u2r8ypzur6k2u5v/P109.jpg?rlkey=3lbijwp1uii3j7op3yh1sbm5t&st=cqaj6pr9',
+  'https://dl.dropboxusercontent.com/scl/fi/00k68wo09p8lxc4x24r3w/P110.jpg?rlkey=3ah8lm5y4e3navmp072hnieod&st=yijfe2tf',
+  'https://dl.dropboxusercontent.com/scl/fi/evby9zn28zi423x0onklk/P111.jpg?rlkey=da65hjlgek0h6kt1n22aclii5&st=p8d1n3m9',
+  'https://dl.dropboxusercontent.com/scl/fi/saquxaxneecofeojjrks3/P113.jpg?rlkey=hxgmpp8f4ies99ftznemp760m&st=ca7eyq0m',
+  'https://dl.dropboxusercontent.com/scl/fi/87adsa9mietoolq64e8ar/P114.jpg?rlkey=mqayws6vrhn06fr2nvk7hlzrd&st=lh5i1pfo'
 ];
 let positivePool = shuffleArray([...POS_FILES]);
 function pickPositiveOnce(){ if(!positivePool.length) positivePool = shuffleArray([...POS_FILES]); return positivePool.pop(); }
@@ -182,30 +159,10 @@ function shuffleWithConstraints(rows, blockLabel) {
 }
 
 // ===== タイムライン部品 =====
-
-// ===== タイムライン開始 =====
 const timeline = [];
 
-// ==== 画像事前ロードを強化 ====
-const preload = {
-  type: jsPsychPreload,
-  auto_preload: true,
-  images: [...POS_FILES, ...NEU_FILES],
-  continue_after_error: false,
-  max_load_time: 60000
-};
-
-// ★ preloadは「一番最初にpush」
+const preload = { type: jsPsychPreload, images: [...POS_FILES, ...NEU_FILES] };
 timeline.push(preload);
-
-// ★ preload後にウォームアップ
-timeline.push({
-  type: jsPsychHtmlKeyboardResponse,
-  stimulus: '',
-  choices: 'NO_KEYS',
-  trial_duration: 200
-});
-
 
 const makeBlankITI = () => ({ type: jsPsychHtmlKeyboardResponse, stimulus: '', choices: 'NO_KEYS', trial_duration: () => randChoice(ITI_SET), data: { tag: 'iti' }, });
 
@@ -251,7 +208,7 @@ const gngTrial = (m, ph) => ({
 // ===== 全体イントロ =====
 timeline.push({
   type: jsPsychHtmlKeyboardResponse,
-  stimulus: `<div style='font-size:24px;text-align:center;line-height:1.8;margin-top:200px;'>これから単語の認知課題を始めます。<b>練習1ブロック＋本番6ブロック</b>を行います。<br>各ブロックでスペースキーを押すべき<b>ターゲット単語</b>は異なります。<br>ターゲット単語が左右どちらかに表示されたらスペースキーを押してください。<br>それ以外は押さないでください。また、<b>画面は全画面表示にしてください。<b><br><br>準備ができたらスペースキーを押してください。</div>`,
+  stimulus: `<div style='font-size:24px;text-align:center;line-height:1.8;margin-top:200px;'>これから<b>練習1ブロック＋本番6ブロック</b>を行います。<br>各ブロックでスペースキーを押すべき<b>ターゲット単語</b>は異なります。<br>ターゲット単語が左右どちらかに表示されたらスペースキーを押してください。<br>それ以外は押さないでください。<br><br>準備ができたらスペースキーを押してください。</div>`,
   choices: [' ']
 });
 
@@ -420,35 +377,14 @@ shuffleArray(mainBlocks).forEach(b => {
 });
 
 // ===== 実験終了メッセージ =====
-
 timeline.push({
   type: jsPsychHtmlKeyboardResponse,
-  stimulus: `
-    <div style="font-size:22px;text-align:center;margin-top:150px;line-height:1.8;">
-      これで単語の識別課題は終わりです。次は再度単語のイメージ判断課題となります。調査の最後に数字を入力するように言われますので、そのときは<b>「00」を入力<b>してください。<br><br>
-      下記の<b>リンクを押して<b>次に進んでください。<br><br>
-      <a href="https://sochit.qualtrics.com/jfe/form/SV_6RkB7yELU4Pqcku" target="_blank">▶ 次へ進む</a>
-    </div>
-  `,
-  choices: "NO_KEYS"
+  stimulus: '<div style="font-size:24px;text-align:center;margin-top:200px;">これで本課題はおしまいです。次は、もう一度単語のイメージ判断課題となります。</div>',
+  choices: 'NO_KEYS',
+  trial_duration: 2000
 });
 
 // ===== 実行開始 =====
 jsPsych.run(timeline);
 </script>
 </html>
-
-
-https://mikkotokyo.github.io/experiment/
-
-timeline.push({
-  type: jsPsychHtmlKeyboardResponse,
-  stimulus: `
-    <div style="font-size:22px;text-align:center;margin-top:150px;line-height:1.8;">
-      これで単語の識別課題は終わりです。次は再度単語のイメージ判断課題となります。調査の最後に数字を入力するように言われますので、そのときは<b>「00」を入力<b>してください。<br><br>
-      下記の<b>リンクを押して<b>次に進んでください。<br><br>
-      <a href="https://sochit.qualtrics.com/jfe/form/SV_6RkB7yELU4Pqcku" target="_blank">▶ 次へ進む</a>
-    </div>
-  `,
-  choices: "NO_KEYS"
-});
