@@ -182,10 +182,30 @@ function shuffleWithConstraints(rows, blockLabel) {
 }
 
 // ===== タイムライン部品 =====
+
+// ===== タイムライン開始 =====
 const timeline = [];
 
-const preload = { type: jsPsychPreload, images: [...POS_FILES, ...NEU_FILES] };
+// ==== 画像事前ロードを強化 ====
+const preload = {
+  type: jsPsychPreload,
+  auto_preload: true,
+  images: [...POS_FILES, ...NEU_FILES],
+  continue_after_error: false,
+  max_load_time: 60000
+};
+
+// ★ preloadは「一番最初にpush」
 timeline.push(preload);
+
+// ★ preload後にウォームアップ
+timeline.push({
+  type: jsPsychHtmlKeyboardResponse,
+  stimulus: '',
+  choices: 'NO_KEYS',
+  trial_duration: 200
+});
+
 
 const makeBlankITI = () => ({ type: jsPsychHtmlKeyboardResponse, stimulus: '', choices: 'NO_KEYS', trial_duration: () => randChoice(ITI_SET), data: { tag: 'iti' }, });
 
@@ -405,7 +425,7 @@ timeline.push({
   type: jsPsychHtmlKeyboardResponse,
   stimulus: `
     <div style="font-size:22px;text-align:center;margin-top:150px;line-height:1.8;">
-      これで単語の識別課題は終わりです。次は再度単語のイメージ判断課題となります。調査の最後に数字を入力するように言われますので、そのときは<b>「11」を入力<b>してください。<br><br>
+      これで単語の識別課題は終わりです。次は再度単語のイメージ判断課題となります。調査の最後に数字を入力するように言われますので、そのときは<b>「00」を入力<b>してください。<br><br>
       下記の<b>リンクを押して<b>次に進んでください。<br><br>
       <a href="https://sochit.qualtrics.com/jfe/form/SV_6RkB7yELU4Pqcku" target="_blank">▶ 次へ進む</a>
     </div>
@@ -417,3 +437,18 @@ timeline.push({
 jsPsych.run(timeline);
 </script>
 </html>
+
+
+https://mikkotokyo.github.io/experiment/
+
+timeline.push({
+  type: jsPsychHtmlKeyboardResponse,
+  stimulus: `
+    <div style="font-size:22px;text-align:center;margin-top:150px;line-height:1.8;">
+      これで単語の識別課題は終わりです。次は再度単語のイメージ判断課題となります。調査の最後に数字を入力するように言われますので、そのときは<b>「00」を入力<b>してください。<br><br>
+      下記の<b>リンクを押して<b>次に進んでください。<br><br>
+      <a href="https://sochit.qualtrics.com/jfe/form/SV_6RkB7yELU4Pqcku" target="_blank">▶ 次へ進む</a>
+    </div>
+  `,
+  choices: "NO_KEYS"
+});
