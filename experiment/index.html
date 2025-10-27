@@ -231,7 +231,7 @@ const gngTrial = (m, ph) => ({
 // ===== 全体イントロ =====
 timeline.push({
   type: jsPsychHtmlKeyboardResponse,
-  stimulus: `<div style='font-size:24px;text-align:center;line-height:1.8;margin-top:200px;'>これから<b>練習1ブロック＋本番6ブロック</b>を行います。<br>各ブロックでスペースキーを押すべき<b>ターゲット単語</b>は異なります。<br>ターゲット単語が左右どちらかに表示されたらスペースキーを押してください。<br>それ以外は押さないでください。また、<b>画面は全画面表示にしてください。<b><br><br>準備ができたらスペースキーを押してください。</div>`,
+  stimulus: `<div style='font-size:24px;text-align:center;line-height:1.8;margin-top:200px;'>これから単語の認知課題を始めます。<b>練習1ブロック＋本番6ブロック</b>を行います。<br>各ブロックでスペースキーを押すべき<b>ターゲット単語</b>は異なります。<br>ターゲット単語が左右どちらかに表示されたらスペースキーを押してください。<br>それ以外は押さないでください。また、<b>画面は全画面表示にしてください。<b><br><br>準備ができたらスペースキーを押してください。</div>`,
   choices: [' ']
 });
 
@@ -400,11 +400,17 @@ shuffleArray(mainBlocks).forEach(b => {
 });
 
 // ===== 実験終了メッセージ =====
+
 timeline.push({
   type: jsPsychHtmlKeyboardResponse,
-  stimulus: '<div style="font-size:24px;text-align:center;margin-top:200px;">これで本課題はおしまいです。次は、もう一度単語のイメージ判断課題となります。</div>',
-  choices: 'NO_KEYS',
-  trial_duration: 2000
+  stimulus: `
+    <div style="font-size:22px;text-align:center;margin-top:150px;line-height:1.8;">
+      これで単語の識別課題は終わりです。次は再度単語のイメージ判断課題となります。調査の最後に数字を入力するように言われますので、そのときは<b>「00」を入力<b>してください。<br><br>
+      下記の<b>リンクを押して<b>次に進んでください。<br><br>
+      <a href="https://sochit.qualtrics.com/jfe/form/SV_6RkB7yELU4Pqcku" target="_blank">▶ 次へ進む</a>
+    </div>
+  `,
+  choices: "NO_KEYS"
 });
 
 // ===== 実行開始 =====
