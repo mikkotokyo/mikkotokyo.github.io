@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <title>Go/No-Go：練習＋6ブロック（完全統合・自動開始版・修正版）</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://unpkg.com/jspsych@7.3.4/css/jspsych.css" rel="stylesheet" />
+  <script src="https://unpkg.com/jspsych@7.3.4"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-preload@1.1.3"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@1.1.3"></script>
+<style>
+  body { background: #fff; color: #111; font-family: system-ui, -apple-system, "Hiragino Kaku Gothic ProN", Meiryo, sans-serif; }
+
+  .word {
+    font-size: 52px;
+    line-height: 1.4;
+  }
+
+  .row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 200px;
+    width: 100%;
+    margin-top: 80px;
+  }
+
+  img {
+    width: 400px;
+    height: 400px;
+    object-fit: contain;
+  }
+
+  /* ここから画面が小さい時だけ自動調整 */
+  @media (max-width: 1200px) {
+    .row {
+      gap: 50px;
+    }
+    img {
+      width: 30vw;
+      height: auto;
+      max-width: 400px;
+    }
+  }
+
+  .error-feedback { text-align: center; margin-top: 120px; }
+  .error-x { color: #ff0000; font-size: 120px; margin-bottom: 30px; }
+  .error-text { font-size: 28px; color: #000; }
+</style>
+
+</head>
+<body></body>
+
+<script>
+// ========== 初期設定 ==========
+const jsPsych = initJsPsych({
+  override_safe_mode: true,
+});
+
+function shuffleArray(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+const randChoice = arr => arr[Math.floor(Math.random()*arr.length)];
+const STIM_DURS=[1000,1200,1400,1600], ITI_SET=[100,200,250];
+const wordHTML=t=>`<div class="word">${t}</div>`, imgHTML=s=>`<img src="${s}">`, pairHTML=(l,r)=>`<div class='row'><div>${l}</div><div>${r}</div></div>`;
+
+// ========== 画像定義（Dropbox直リンク版） ==========
+const POS_FILES = [
+  'https://dl.dropboxusercontent.com/scl/fi/qh31k5c21799ao97fn8lf/p1.jpg?rlkey=a1eggmhufc8uom23qgk0q3qpp&st=antju08u&dl',
+  'https://dl.dropboxusercontent.com/scl/fi/4xj2a578wwvadr57dyz6m/p2.jpg?rlkey=2e6s7428mhaidxfqvhnhdfwsc&st=21u6ro2w&dl',
+  'https://dl.dropboxusercontent.com/scl/fi/2piqwofsqvlvi9w9papht/p3.jpg?rlkey=51nyn0plq702i4qn5easho13t&st=bx1spxjw&dl',
+  'https://dl.dropboxusercontent.com/scl/fi/k79073vspm7p0p4snjdz0/p4.jpg?rlkey=x1naj4faoaot6hqu3ts2m8kr4&st=k8560gkh&dl',
+  'https://dl.dropboxusercontent.com/scl/fi/phoc64z29nzjr53jyih3h/p5.jpg?rlkey=85r3lbwwbughlrj7s92nhu3iz&st=ee28vc7w&dl',
+  'https://dl.dropboxusercontent.com/scl/fi/bipgfxfe573cjf8esjgm3/p6.jpg?rlkey=9i8za1ugk0sq1lbv1huompnwx&st=hdqb9smq&dl',
+  'https://dl.dropboxusercontent.com/scl/fi/fh8g4vqxgcf89icvfiicw/p7.jpg?rlkey=jee0ay363mr50cjtofhu8wqna&st=ngfkr27m&dl',
+  'https://dl.dropboxusercontent.com/scl/fi/9wnjf581c8ie4bkanr6x6/p8.jpg?rlkey=1ujz92pvqeszstzzoh8kolje5&st=kr78y39p&dl',
+  'https://dl.dropboxusercontent.com/scl/fi/l8ndffd819hh5y2jdv0y8/p9.jpg?rlkey=vwmy5d2b3zts60vfr454jnz9p&st=yrf9cfvj&dl',
+  'https://dl.dropboxusercontent.com/scl/fi/xnjdyom5buwt0xuoeb26a/p10.jpg?rlkey=j9vav46fojq2za77vl08zpr31&st=vmesmgpr&dl',
+  'https://dl.dropboxusercontent.com/scl/fi/t2vbglmywa0fc7u70qle7/p11.jpg?rlkey=ry8t82efk01sqfrssrl6ombww&st=a14k05wf&dl',
+  'https://dl.dropboxusercontent.com/scl/fi/pws4vat3okwy5oke8138i/p12.jpg?rlkey=749m81i6tmritvvcfmp75awbi&st=kh9sl914&dl',
+  'https://dl.dropboxusercontent.com/scl/fi/a3688p5s5z4cavco0m4mh/p13.jpg?rlkey=qkz6mm4pmbvrsrorwi181yq1q&st=ipnu0368&dl',
+  'https://dl.dropboxusercontent.com/scl/fi/bhkk9hq5q03td9y4pbd1u/p14.jpg?rlkey=pnlltqg2ufqceulw9pk16ml3n&st=l20qpcjr&dl',
+  'https://dl.dropboxusercontent.com/scl/fi/8fuu48mbjk1axsyhggnji/p15.jpg?rlkey=a8jqhiz7sdaw661ngtb5gtpc1&st=k5r4muiu&dl',
+  'https://dl.dropboxusercontent.com/scl/fi/p033ij9v0l6deh1k1viwy/p16.jpg?rlkey=kfxsujchj3kem8dd24mnczdyd&st=uuxz026o&dl',
+  'https://dl.dropboxusercontent.com/scl/fi/3r8rr28mtk5aqkcw0ocb0/p17.jpg?rlkey=whsucnahmdlae4b9xc7m6uxjn&st=sxoiyd40&dl',
+  'https://dl.dropboxusercontent.com/scl/fi/qu7cdrcr41kqae29qy8p4/p18.jpg?rlkey=17923c3u1qy1h3c7lda28xam7&st=wtmicany&dl',
+  'https://dl.dropboxusercontent.com/scl/fi/vqdu1k4ls70mv2i3hyta3/p19.jpg?rlkey=5km57k490ohqqjjc5jmw4qoeb&st=2wxaornf&dl',
+  'https://dl.dropboxusercontent.com/scl/fi/ktw2x5wkkth9es007sslb/p20.jpg?rlkey=zsergwyt17eki9nwt1wdmj6z3&st=d6swytmt&dl',
+  'https://dl.dropboxusercontent.com/scl/fi/qe6tmehpobey6rjsn6trg/p21.jpg?rlkey=txi28ou2ny8xrkugiattp5915&st=0ml6ngar&dl',
+  'https://dl.dropboxusercontent.com/scl/fi/rcsmfps5mge6htt3ervpy/p22.jpg?rlkey=h6cyxz48yntyz3k2c3e6s3u6m&st=c6te2ha6&dl',
+  'https://dl.dropboxusercontent.com/scl/fi/d35e9jebjyifd3ley4ua1/p23.jpg?rlkey=qk32uqgt5ubf7b0hzmnixor8e&st=xc1cpuww&dl',
+  'https://dl.dropboxusercontent.com/scl/fi/jm11ps7f76njxqu8b2pu0/p24.jpg?rlkey=47pl0l3wdpxwau3fvghpg1hi7&st=3wzs770d&dl'
+];
+let positivePool = shuffleArray([...POS_FILES]);
+function pickPositiveOnce(){ if(!positivePool.length) positivePool = shuffleArray([...POS_FILES]); return positivePool.pop(); }
+
+const NEU_FILES = [
+  'https://dl.dropboxusercontent.com/scl/fi/u7j10uo24yfrm7pjmk3kc/N002.jpg?rlkey=c612fnh3luvufdc5lkyccupfx&st=k0f3blxi',
+  'https://dl.dropboxusercontent.com/scl/fi/w5bt2p0g3eihw8tywhz4c/N010.jpg?rlkey=2620q2tolyrz26qy7num8o5hl&st=tdby4ock',
+  'https://dl.dropboxusercontent.com/scl/fi/2yv1ejnu7mwyhkh9r1px5/N013.jpg?rlkey=njk60hx84h2zxohdjb7abbkcu&st=yudpl1tz',
+  'https://dl.dropboxusercontent.com/scl/fi/0p4im4j1khlc42gzk5h50/N017.jpg?rlkey=g03bwc6w0988kt0ilb4g7fxw2&st=g43t439w',
+  'https://dl.dropboxusercontent.com/scl/fi/0bc7cztghihanzwpgslmn/N022.jpg?rlkey=rnq95t6l3hrcd7yvhqa8pw0zr&st=uuu3f3s9',
+  'https://dl.dropboxusercontent.com/scl/fi/vy1kje01wkp1nlbpix1bb/N024.jpg?rlkey=7dlpotaqj5iu83mrvxh7cbax8&st=tx3va9gn',
+  'https://dl.dropboxusercontent.com/scl/fi/ajdqirh5y06wgf4o36o3t/N030.jpg?rlkey=9ondrs33j2hyuv2a9hz41ozpb&st=s3ezo1k5',
+  'https://dl.dropboxusercontent.com/scl/fi/5ocj3q0c3vml4wf1xam8i/N034.jpg?rlkey=0tc4c1knnd2zryyyx8rjv0dg9&st=2z05v0ys',
+  'https://dl.dropboxusercontent.com/scl/fi/sbpfkglzbdtozurrwfreu/N046.jpg?rlkey=qk63cu70zewixmw1reqwxiqmg&st=ny1w4uc8',
+  'https://dl.dropboxusercontent.com/scl/fi/865dt8tpoot30bftpvet2/N061.jpg?rlkey=cejdsoloej7pvrlyt8d8fb1jh&st=bl4wbpfn',
+  'https://dl.dropboxusercontent.com/scl/fi/bwy0vped2rnahus5kk66a/N064.jpg?rlkey=1bvorvbspzmhsgr6p239iw7ej&st=udadqits',
+  'https://dl.dropboxusercontent.com/scl/fi/jxnpcn4mgw4yen4ntlwow/N078.jpg?rlkey=ra4g5kuqpjca0dbq1egw2c4nk&st=lj50xxwa',
+  'https://dl.dropboxusercontent.com/scl/fi/5sjownnoqkg2vtryy1p0q/N079.jpg?rlkey=coxu6lyubftm1lbjsauxb9467&st=uly2xk58',
+  'https://dl.dropboxusercontent.com/scl/fi/lvbo4ftl30w096k4v8qiq/N080.jpg?rlkey=aip4m9s4vv7ta9kw3qwc2qqft&st=adoqfk4o',
+  'https://dl.dropboxusercontent.com/scl/fi/be7ndpr0gtdb7b6sf6e6r/N085.jpg?rlkey=vfebxhobz264qmibblzmfm42x&st=891kzybc',
+  'https://dl.dropboxusercontent.com/scl/fi/gk15n4js4lollju3w1pez/N091.jpg?rlkey=5z22pkk45x604jl8ndoeu8d9g&st=4n9w79wz',
+  'https://dl.dropboxusercontent.com/scl/fi/tqmibq7ne6bttk9glu9y2/N097.jpg?rlkey=mp4v8qlsjgmvevxaqcfbi5d0p&st=iwl98izx',
+  'https://dl.dropboxusercontent.com/scl/fi/bfz7zh0di3upx8knblz4n/N100.jpg?rlkey=7djs1ojvrwmyhusfiiwhrykme&st=4f4zi5tb',
+  'https://dl.dropboxusercontent.com/scl/fi/5f1xvsd8uzlc38b5l0udj/N101.jpg?rlkey=cynt403cetddwjt0ytps2hmp6&st=j4yqpwgi',
+  'https://dl.dropboxusercontent.com/scl/fi/grl0w5onoxmcppygsi02n/N102.jpg?rlkey=fqa7v3t88mjo1bjytyr1wycxp&st=ekyahbh5',
+  'https://dl.dropboxusercontent.com/scl/fi/x5jdzobbu39ujr0koyey6/N104.jpg?rlkey=ec767ios9qn26cdquvgt2lakn&st=rqdtzmom',
+  'https://dl.dropboxusercontent.com/scl/fi/ux9kf6b5bibdxkw3au9kb/N109.jpg?rlkey=afjl1c6eotgux44dq1mzb5bd3&st=pkwy1dy2'
+];
+let neutralPool = shuffleArray([...NEU_FILES]);
+function pickNeutralOnce(){ if(!neutralPool.length) neutralPool = shuffleArray([...NEU_FILES]); return neutralPool.pop(); }
+
+// ========== ターゲット定義 ==========
+const TARGETS={
+  block0:{label:'動物',words:['猫','ライオン','シマウマ','犬']},
+  block1:{label:'国',words:['インド','エジプト','カナダ','スペイン']},
+  block2:{label:'スポーツ',words:['サッカー','卓球','テニス','野球']},
+  block3:{label:'都市',words:['ロンドン','東京','ニューヨーク','上海']},
+  block4:{label:'衣類',words:['帽子','シャツ','靴下','コート']},
+  block5:{label:'家電',words:['冷蔵庫','洗濯機','掃除機','ポット']},
+  block6:{label:'果物',words:['リンゴ','ミカン','ブドウ','バナナ']}
+};
+
+// ========== 連続制約関数 ==========
+function validImageSideSequence(rows){
+  let runL=0,runR=0;
+  for(const r of rows){
+    const L=r.left.includes('IMG'), R=r.right.includes('IMG');
+    if(L&&!R){runL++;runR=0;} else if(R&&!L){runR++;runL=0;} else {runL=0;runR=0;}
+    if(runL>=3||runR>=3)return false;
+  }
+  return true;
+}
+
+// ========== 呈示生成 ==========
+function materializeRow(blockLabel,rowObj){
+  const tokenToHTML=x=>x==='POS_IMG'?imgHTML(pickPositiveOnce()):x==='NEU_IMG'?imgHTML(pickNeutralOnce()):wordHTML(x);
+  if(!window.harDurations)window.harDurations={};
+  if(!window.harDurations[blockLabel])window.harDurations[blockLabel]=shuffleArray([...STIM_DURS]);
+  const HAR_WORDS = ['ハラスメント', 'カスハラ', 'セクハラ', 'パワハラ'];
+  let dur = (HAR_WORDS.some(w => rowObj.left.includes(w) || rowObj.right.includes(w)))
+    ? window.harDurations[blockLabel].pop()
+    : randChoice(STIM_DURS);
+  const Lhtml=tokenToHTML(rowObj.left),Rhtml=tokenToHTML(rowObj.right);
+  const go=TARGETS[blockLabel].words.some(t=>rowObj.left===t||rowObj.right===t);
+  return{block:blockLabel,left:Lhtml,right:Rhtml,dur,type:go?'go':'nogo',rawLeft:rowObj.left,rawRight:rowObj.right};
+}
+
+// ========== 制約シャッフル ==========
+function shuffleWithConstraints(rows, blockLabel) {
+  const harassmentWords = ['ハラスメント', 'カスハラ', 'セクハラ', 'パワハラ'];
+  let shuf, ok = false;
+  while (!ok) {
+    shuf = shuffleArray(rows);
+    ok = true;
+    if (harassmentWords.some(w => shuf[0].left.includes(w) || shuf[0].right.includes(w))) ok = false;
+    for (let i = 1; i < shuf.length; i++) {
+      const p = shuf[i - 1];
+      const c = shuf[i];
+      const prevHasHar = harassmentWords.some(w => p.left.includes(w) || p.right.includes(w));
+      const currHasHar = harassmentWords.some(w => c.left.includes(w) || c.right.includes(w));
+      if (prevHasHar && currHasHar) { ok = false; break; }
+    }
+    let goRun = 0;
+    for (const r of shuf) {
+      const isGo = TARGETS[blockLabel].words.some(t => r.left === t || r.right === t);
+      if (isGo) { goRun++; if (goRun >= 3) { ok = false; break; } }
+      else goRun = 0;
+    }
+    if (!validImageSideSequence(shuf)) ok = false;
+  }
+  return shuf;
+}
+
+// ===== タイムライン部品 =====
+const timeline = [];
+
+const preload = { type: jsPsychPreload, images: [...POS_FILES, ...NEU_FILES] };
+timeline.push(preload);
+
+const makeBlankITI = () => ({ type: jsPsychHtmlKeyboardResponse, stimulus: '', choices: 'NO_KEYS', trial_duration: () => randChoice(ITI_SET), data: { tag: 'iti' }, });
+
+const errorFeedback = {
+  type: jsPsychHtmlKeyboardResponse,
+  stimulus: `
+    <div class='error-feedback'>
+      <div class='error-x'>×</div>
+      <div class='error-text'>ターゲット語が表示されたらスペースキーを押してください。</div>
+    </div>` ,
+  choices: 'NO_KEYS',
+  trial_duration: 1000,
+  data: { tag: 'error' },
+};
+
+// ★★★ ここがバグの原因だった箇所（閉じカッコ不足を修正） ★★★
+const gngTrial = (m, ph) => ({
+  type: jsPsychHtmlKeyboardResponse,
+  stimulus: pairHTML(m.left, m.right),
+  choices: [' '],
+  trial_duration: m.dur,
+  response_ends_trial: false,
+  data: { tag: 'gng', phase: ph, type: m.type, stim_dur: m.dur, block: m.block },
+  on_finish: (d) => {
+    const go = (m.type === 'go');
+    const resp = (d.response !== null);
+    let acc = 0;
+    let err = 'correct';
+    if (go) { acc = resp ? 1 : 0; if (!resp) err = 'omission'; }
+    else { acc = resp ? 0 : 1; if (resp) err = 'commission'; }
+    d.acc = acc; d.error_type = err;
+    if (err !== 'correct') {
+      setTimeout(() => {
+        if (jsPsych.isRunning()) {
+          jsPsych.addNodeToEndOfTimeline({ timeline: [errorFeedback] }, jsPsych.resumeExperiment);
+        }
+      }, 50);
+    }
+  }
+});
+// ★★★ ここまでで gngTrial のオブジェクトをきちんと閉じた ★★★
+
+// ===== 全体イントロ =====
+timeline.push({
+  type: jsPsychHtmlKeyboardResponse,
+  stimulus: `<div style='font-size:24px;text-align:center;line-height:1.8;margin-top:200px;'>これから<b>練習1ブロック＋本番6ブロック</b>を行います。<br>各ブロックでスペースキーを押すべき<b>ターゲット単語</b>は異なります。<br>ターゲット単語が左右どちらかに表示されたらスペースキーを押してください。<br>それ以外は押さないでください。また、<b>画面は全画面表示にしてください。<b><br><br>準備ができたらスペースキーを押してください。</div>`,
+  choices: [' ']
+});
+
+// ===== 練習 =====
+const pracShuf = [
+  { left:'イラストレーター', right:'NEU_IMG' },
+  { left:'NEU_IMG', right:'猫' },
+  { left:'NEU_IMG', right:'バージョン' },
+  { left:'自転車', right:'NEU_IMG' },
+  { left:'NEU_IMG', right:'シマウマ' },
+  { left:'車', right:'NEU_IMG' },
+  { left:'ライオン', right:'NEU_IMG' },
+  { left:'NEU_IMG', right:'バージョン' },
+  { left:'自転車', right:'NEU_IMG' },
+  { left:'NEU_IMG', right:'車' },
+  { left:'NEU_IMG', right:'犬' },
+  { left:'イラストレーター', right:'NEU_IMG' }
+];
+
+timeline.push({
+  type: jsPsychHtmlKeyboardResponse,
+  stimulus: `<div style='font-size:24px;text-align:center;line-height:1.8;margin-top:180px;'>【練習ブロック】ターゲット単語：<b>動物</b><br>動物を表す単語が出てきたらスペースキーを押してください。<br>スペースキーで練習を開始します。</div>`,
+  choices: [' ']
+});
+
+pracShuf.map(r => materializeRow('block0', r)).forEach(m => {
+  timeline.push(makeBlankITI());
+  timeline.push(gngTrial(m, 'practice'));
+  timeline.push(makeBlankITI());
+  timeline.push({
+    timeline: [errorFeedback],
+    conditional_function: () => {
+      const lastGng = jsPsych.data.get().filter({ tag: 'gng' }).last(1).values()[0];
+      return lastGng && (
+        (lastGng.type === 'go'   && lastGng.error_type === 'omission') ||
+        (lastGng.type === 'nogo' && lastGng.error_type === 'commission')
+      );
+    }
+  });
+});
+
+// ===== 本番前イントロ =====
+timeline.push({
+  type: jsPsychHtmlKeyboardResponse,
+  stimulus: `<div style='font-size:24px;text-align:center;line-height:1.8;margin-top:200px;'>ここから本番に進みます。<br>ここから6つのブロック（約3分程度）が終わるまでは休憩がありません。<br><br>準備ができたら、スペースキーを押して本番をはじめてください。</div>`,
+  choices: [' ']
+});
+
+// ===== ブロックデータ =====
+const BLOCKS_SPEC= [
+  { label: 'block1', rows: [
+      { left:'カスハラ', right:'POS_IMG' },
+      { left:'POS_IMG', right:'ハラスメント' },
+      { left:'セクハラ', right:'POS_IMG' },
+      { left:'POS_IMG', right:'パワハラ' },
+      { left:'インド', right:'NEU_IMG' },
+      { left:'NEU_IMG', right:'エジプト' },
+      { left:'カナダ', right:'NEU_IMG' },
+      { left:'NEU_IMG', right:'スペイン' },
+      { left:'ディスカウント', right:'NEU_IMG' },
+      { left:'NEU_IMG', right:'サッカー' },
+      { left:'ロンドン', right:'NEU_IMG' },
+      { left:'NEU_IMG', right:'コート' }
+  ]},
+  { label: 'block2', rows: [
+      { left:'ハラスメント', right:'POS_IMG' },
+      { left:'POS_IMG', right:'カスハラ' },
+      { left:'パワハラ', right:'POS_IMG' },
+      { left:'POS_IMG', right:'セクハラ' },
+      { left:'サッカー', right:'NEU_IMG' },
+      { left:'NEU_IMG', right:'卓球' },
+      { left:'テニス', right:'NEU_IMG' },
+      { left:'NEU_IMG', right:'野球' },
+      { left:'アメニティ', right:'NEU_IMG' },
+      { left:'NEU_IMG', right:'冷蔵庫' },
+      { left:'リンゴ', right:'NEU_IMG' },
+      { left:'NEU_IMG', right:'靴下' }
+  ]},
+  { label: 'block3', rows: [
+      { left:'カスハラ', right:'POS_IMG' },
+      { left:'POS_IMG', right:'ハラスメント' },
+      { left:'セクハラ', right:'POS_IMG' },
+      { left:'POS_IMG', right:'パワハラ' },
+      { left:'ロンドン', right:'NEU_IMG' },
+      { left:'NEU_IMG', right:'東京' },
+      { left:'ニューヨーク', right:'NEU_IMG' },
+      { left:'NEU_IMG', right:'上海' },
+      { left:'ペット', right:'NEU_IMG' },
+      { left:'NEU_IMG', right:'エジプト' },
+      { left:'テニス', right:'NEU_IMG' },
+      { left:'NEU_IMG', right:'シャツ' }
+  ]},
+  { label: 'block4', rows: [
+      { left:'ハラスメント', right:'POS_IMG' },
+      { left:'POS_IMG', right:'カスハラ' },
+      { left:'パワハラ', right:'POS_IMG' },
+      { left:'POS_IMG', right:'セクハラ' },
+      { left:'コート', right:'NEU_IMG' },
+      { left:'NEU_IMG', right:'帽子' },
+      { left:'シャツ', right:'NEU_IMG' },
+      { left:'NEU_IMG', right:'靴下' },
+      { left:'グルメ', right:'NEU_IMG' },
+      { left:'NEU_IMG', right:'ポット' },
+      { left:'ミカン', right:'NEU_IMG' },
+      { left:'NEU_IMG', right:'洗濯機' }
+  ]},
+  { label: 'block5', rows: [
+      { left:'カスハラ', right:'POS_IMG' },
+      { left:'POS_IMG', right:'ハラスメント' },
+      { left:'セクハラ', right:'POS_IMG' },
+      { left:'POS_IMG', right:'パワハラ' },
+      { left:'冷蔵庫', right:'NEU_IMG' },
+      { left:'NEU_IMG', right:'ポット' },
+      { left:'洗濯機', right:'NEU_IMG' },
+      { left:'NEU_IMG', right:'掃除機' },
+      { left:'ディスカウント', right:'NEU_IMG' },
+      { left:'NEU_IMG', right:'カナダ' },
+      { left:'卓球', right:'NEU_IMG' },
+      { left:'NEU_IMG', right:'東京' }
+  ]},
+  { label: 'block6', rows: [
+      { left:'ハラスメント', right:'POS_IMG' },
+      { left:'POS_IMG', right:'カスハラ' },
+      { left:'パワハラ', right:'POS_IMG' },
+      { left:'POS_IMG', right:'セクハラ' },
+      { left:'リンゴ', right:'NEU_IMG' },
+      { left:'NEU_IMG', right:'ミカン' },
+      { left:'バナナ', right:'NEU_IMG' },
+      { left:'NEU_IMG', right:'ブドウ' },
+      { left:'アメニティ', right:'NEU_IMG' },
+      { left:'NEU_IMG', right:'帽子' },
+      { left:'掃除機', right:'NEU_IMG' },
+      { left:'NEU_IMG', right:'ニューヨーク' }
+  ]}
+];
+
+// ===== 本番処理 =====
+const mainBlocks=[1,2,3,4,5,6];
+shuffleArray(mainBlocks).forEach(b => {
+  const label = 'block' + b;
+  const disp = TARGETS[label].label;
+  timeline.push({
+    type: jsPsychHtmlKeyboardResponse,
+    stimulus: `<div style='font-size:24px;text-align:center;line-height:1.8;margin-top:180px;'>【次のブロック】ターゲット単語：<b>${disp}</b><br>${disp}を表わす単語が表示されたらスペースキーを押してください。<br><br>このブロックは10秒後に自動的に開始します。</div>`,
+    choices: 'NO_KEYS',
+    trial_duration: 10000
+  });
+
+  shuffleWithConstraints(BLOCKS_SPEC.find(x => x.label === label).rows, label)
+    .map(r => materializeRow(label, r))
+    .forEach(m => {
+      timeline.push(makeBlankITI());
+      timeline.push(gngTrial(m, 'main'));
+      timeline.push(makeBlankITI());
+      timeline.push({
+        timeline: [errorFeedback],
+        conditional_function: () => {
+          const lastGng = jsPsych.data.get().filter({ tag: 'gng' }).last(1).values()[0];
+          return lastGng && (
+            (lastGng.type === 'go'   && lastGng.error_type === 'omission') ||
+            (lastGng.type === 'nogo' && lastGng.error_type === 'commission')
+          );
+        }
+      });
+    });
+});
+
+// ===== 実験終了メッセージ =====
+timeline.push({
+  type: jsPsychHtmlKeyboardResponse,
+  stimulus: '<div style="font-size:24px;text-align:center;margin-top:200px;">これで本課題はおしまいです。次は、もう一度単語のイメージ判断課題となります。</div>',
+  choices: 'NO_KEYS',
+  trial_duration: 2000
+});
+
+// ===== 実行開始 =====
+jsPsych.run(timeline);
+</script>
+</html>
