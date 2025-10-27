@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <title>Go/No-Go：練習＋6ブロック（完全統合・自動開始版・修正版）</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  
   <link href="https://unpkg.com/jspsych@7.3.4/css/jspsych.css" rel="stylesheet" />
   <script src="https://unpkg.com/jspsych@7.3.4"></script>
   <script src="https://unpkg.com/@jspsych/plugin-preload@1.1.3"></script>
@@ -182,10 +183,38 @@ function shuffleWithConstraints(rows, blockLabel) {
 }
 
 // ===== タイムライン部品 =====
+// ===== タイムライン開始 =====
 const timeline = [];
 
-const preload = { type: jsPsychPreload, images: [...POS_FILES, ...NEU_FILES] };
+// ==== 画像事前ロードを強化 ====
+const preload = {
+  type: jsPsychPreload,
+  auto_preload: true,
+  images: [...POS_FILES, ...NEU_FILES],
+  continue_after_error: false,
+  max_load_time: 60000
+};
+
+// ★ preloadは「一番最初にpush」
 timeline.push(preload);
+
+// ★ preload後にウォームアップ
+timeline.push({
+  type: jsPsychHtmlKeyboardResponse,
+  stimulus: '',
+  choices: 'NO_KEYS',
+  trial_duration: 200
+});
+
+// ここから先にITIなど追加する
+const makeBlankITI = () => ({
+  type: jsPsychHtmlKeyboardResponse,
+  stimulus: '',
+  choices: 'NO_KEYS',
+  trial_duration: () => randChoice(ITI_SET),
+  data: { tag: 'iti' },
+});
+
 
 const makeBlankITI = () => ({ type: jsPsychHtmlKeyboardResponse, stimulus: '', choices: 'NO_KEYS', trial_duration: () => randChoice(ITI_SET), data: { tag: 'iti' }, });
 
