@@ -4,7 +4,6 @@
   <meta charset="utf-8" />
   <title>Go/No-Go：練習＋6ブロック（完全統合・自動開始版・修正版）</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  
   <link href="https://unpkg.com/jspsych@7.3.4/css/jspsych.css" rel="stylesheet" />
   <script src="https://unpkg.com/jspsych@7.3.4"></script>
   <script src="https://unpkg.com/@jspsych/plugin-preload@1.1.3"></script>
@@ -183,6 +182,7 @@ function shuffleWithConstraints(rows, blockLabel) {
 }
 
 // ===== タイムライン部品 =====
+
 // ===== タイムライン開始 =====
 const timeline = [];
 
@@ -204,15 +204,6 @@ timeline.push({
   stimulus: '',
   choices: 'NO_KEYS',
   trial_duration: 200
-});
-
-// ここから先にITIなど追加する
-const makeBlankITI = () => ({
-  type: jsPsychHtmlKeyboardResponse,
-  stimulus: '',
-  choices: 'NO_KEYS',
-  trial_duration: () => randChoice(ITI_SET),
-  data: { tag: 'iti' },
 });
 
 
@@ -310,11 +301,9 @@ timeline.push({
 });
 
 // ===== ブロックデータ =====
-const BLOCKS_SPEC = [
-  {
-    label: 'block1',
-    rows: [
-      { left:'靴下', right:'NEU_IMG' },
+const BLOCKS_SPEC= [
+  { label: 'block1', rows: [
+      { left:'ディスカウント', right:'NEU_IMG' },
       { left:'NEU_IMG', right:'洗濯機' },
       { left:'バナナ', right:'NEU_IMG' },
       { left:'NEU_IMG', right:'ニューヨーク' },
@@ -325,30 +314,24 @@ const BLOCKS_SPEC = [
       { left:'ディスカウント', right:'NEU_IMG' },
       { left:'NEU_IMG', right:'サッカー' },
       { left:'ロンドン', right:'NEU_IMG' },
-      { left:'NEU_IMG', right:'野球' }
-    ]
-  },
-  {
-    label: 'block2',
-    rows: [
+      { left:'NEU_IMG', right:'コート' }
+  ]},
+  { label: 'block2', rows: [
       { left:'上海', right:'NEU_IMG' },
-      { left:'NEU_IMG', right:'コート' },
+      { left:'NEU_IMG', right:'グルメ' },
       { left:'冷蔵庫', right:'NEU_IMG' },
       { left:'NEU_IMG', right:'ブドウ' },
       { left:'サッカー', right:'NEU_IMG' },
       { left:'NEU_IMG', right:'卓球' },
       { left:'テニス', right:'NEU_IMG' },
       { left:'NEU_IMG', right:'野球' },
-      { left:'アメニティー', right:'NEU_IMG' },
+      { left:'アメニティ', right:'NEU_IMG' },
       { left:'NEU_IMG', right:'冷蔵庫' },
       { left:'リンゴ', right:'NEU_IMG' },
-      { left:'NEU_IMG', right:'猫' }
-    ]
-  },
-  {
-    label: 'block3',
-    rows: [
-      { left:'スペイン', right:'NEU_IMG' },
+      { left:'NEU_IMG', right:'靴下' }
+  ]},
+  { label: 'block3', rows: [
+      { left:'ペット', right:'NEU_IMG' },
       { left:'NEU_IMG', right:'サッカー' },
       { left:'シャツ', right:'NEU_IMG' },
       { left:'NEU_IMG', right:'ポット' },
@@ -360,12 +343,9 @@ const BLOCKS_SPEC = [
       { left:'NEU_IMG', right:'エジプト' },
       { left:'テニス', right:'NEU_IMG' },
       { left:'NEU_IMG', right:'シャツ' }
-    ]
-  },
-  {
-    label: 'block4',
-    rows: [
-      { left:'リンゴ', right:'NEU_IMG' },
+  ]},
+  { label: 'block4', rows: [
+      { left:'アメニティー', right:'NEU_IMG' },
       { left:'NEU_IMG', right:'インド' },
       { left:'テニス', right:'NEU_IMG' },
       { left:'NEU_IMG', right:'ロンドン' },
@@ -376,16 +356,13 @@ const BLOCKS_SPEC = [
       { left:'グルメ', right:'NEU_IMG' },
       { left:'NEU_IMG', right:'ポット' },
       { left:'ミカン', right:'NEU_IMG' },
-      { left:'NEU_IMG', right:'犬' }
-    ]
-  },
-  {
-    label: 'block5',
-    rows: [
+      { left:'NEU_IMG', right:'洗濯機' }
+  ]},
+  { label: 'block5', rows: [
       { left:'帽子', right:'NEU_IMG' },
       { left:'NEU_IMG', right:'ミカン' },
       { left:'エジプト', right:'NEU_IMG' },
-      { left:'NEU_IMG', right:'東京' },
+      { left:'NEU_IMG', right:'ディスカウント' },
       { left:'冷蔵庫', right:'NEU_IMG' },
       { left:'NEU_IMG', right:'ポット' },
       { left:'洗濯機', right:'NEU_IMG' },
@@ -394,25 +371,21 @@ const BLOCKS_SPEC = [
       { left:'NEU_IMG', right:'カナダ' },
       { left:'卓球', right:'NEU_IMG' },
       { left:'NEU_IMG', right:'東京' }
-    ]
-  },
-  {
-    label: 'block6',
-    rows: [
+  ]},
+  { label: 'block6', rows: [
       { left:'靴下', right:'NEU_IMG' },
-      { left:'NEU_IMG', right:'掃除機' },
+      { left:'NEU_IMG', right:'アメニティー' },
       { left:'カナダ', right:'NEU_IMG' },
       { left:'NEU_IMG', right:'卓球' },
       { left:'リンゴ', right:'NEU_IMG' },
       { left:'NEU_IMG', right:'ミカン' },
       { left:'バナナ', right:'NEU_IMG' },
       { left:'NEU_IMG', right:'ブドウ' },
-      { left:'アメニティー', right:'NEU_IMG' },
+      { left:'アメニティ', right:'NEU_IMG' },
       { left:'NEU_IMG', right:'帽子' },
       { left:'掃除機', right:'NEU_IMG' },
       { left:'NEU_IMG', right:'ニューヨーク' }
-    ]
-  }
+  ]}
 ];
 
 // ===== 本番処理 =====
@@ -447,12 +420,12 @@ shuffleArray(mainBlocks).forEach(b => {
 });
 
 // ===== 実験終了メッセージ =====
-timeline.push({
+
 timeline.push({
   type: jsPsychHtmlKeyboardResponse,
   stimulus: `
     <div style="font-size:22px;text-align:center;margin-top:150px;line-height:1.8;">
-      これで単語の識別課題は終わりです。次は再度単語のイメージ判断課題となります。調査の最後に数字を入力するように言われますので、そのときは<b>「00」を入力<b>してください。<br><br>
+      これで単語の識別課題は終わりです。次は再度単語のイメージ判断課題となります。<br>調査の最後に再度数字の入力をお願いしますので、その際は<b>「00」を入力<b>ください。<br><br>
       下記の<b>リンクを押して<b>次に進んでください。<br><br>
       <a href="https://sochit.qualtrics.com/jfe/form/SV_cGAWqule2tBPlvo" target="_blank">▶ 次へ進む</a>
     </div>
